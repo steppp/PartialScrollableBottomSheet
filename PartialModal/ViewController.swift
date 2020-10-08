@@ -27,13 +27,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.view.backgroundColor = UIColor.red
         self.setupSubview()
-    }
-    
-    override func viewDidLayoutSubviews() {
-        // this must be done after the views have been layed out to allow constraints
-        // to give the partialView its correct size
         self.applyStyle(to: self.partialView)
         
         self.minimumViewHeightDifference = self.view.frame.height *
@@ -94,7 +88,6 @@ class ViewController: UIViewController {
         }
         
         self.partialView.superviewPositionStateUpdated(to: positionState)
-        debugPrint("new position state is \(positionState.rawValue)")
     }
     
     private func getMidPoints(from array: [CGFloat]) -> [CGFloat] {
@@ -114,7 +107,7 @@ class ViewController: UIViewController {
         }].compactMap { $0?.0 }[0]
     }
     
-    enum PositionState: String {
+    enum PositionState: String, CaseIterable {
         case top, progressing, mid, bottom
     }
 }
@@ -157,13 +150,18 @@ extension ViewController: PartialScrollableViewDelegate {
                     viewHeightUpdateValue = checkpoints[indexOfNearestCheckpoint]
                 } else {
                     // above: set the constraint to the previous (higher) checkpoint
-                    viewHeightUpdateValue = checkpoints[indexOfNearestCheckpoint - 1]
+                    // prevent the index from going out of bounds due to the animation (?)
+                    let previousIndex = indexOfNearestCheckpoint - 1
+                    viewHeightUpdateValue = checkpoints[previousIndex < 0 ? 0 : previousIndex]
                 }
             } else {
                 // going down
                 if isBelowCheckpoint {
                     // below: set the constraint to the next (lower) checkpoint
-                    viewHeightUpdateValue = checkpoints[indexOfNearestCheckpoint + 1]
+                    // prevent the index from going out of bounds due to the animation (?)
+                    let nextIndex = indexOfNearestCheckpoint + 1
+                    viewHeightUpdateValue = checkpoints[nextIndex < checkpoints.count ?
+                                                            nextIndex : checkpoints.count - 1]
                 } else {
                     // above: set the constrant to the nearest value
                     viewHeightUpdateValue = checkpoints[indexOfNearestCheckpoint]

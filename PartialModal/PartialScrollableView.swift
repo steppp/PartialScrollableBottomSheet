@@ -67,7 +67,7 @@ class PartialScrollableView: UIView {
         
         NSLayoutConstraint.activate([
             self.innerScrollView.topAnchor.constraint(equalTo: self.topAnchor),
-            self.innerScrollView.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.5),
+            self.innerScrollView.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.8),
             self.innerScrollView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             self.innerScrollView.widthAnchor.constraint(equalTo: self.widthAnchor)
         ])
@@ -137,9 +137,7 @@ extension PartialScrollableView: UIScrollViewDelegate {
     
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint,
                                    targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        if [ViewController.PositionState.progressing,
-            ViewController.PositionState.mid,
-            ViewController.PositionState.bottom].contains(self.superviewScrollState) {
+        if ViewController.PositionState.allCases.dropFirst().contains(self.superviewScrollState) {
             // in all these cases, the inner scroll view must not scroll
             targetContentOffset.pointee = .zero
             scrollView.isScrollEnabled = false
