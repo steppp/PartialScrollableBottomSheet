@@ -110,7 +110,7 @@ protocol PartialScrollableViewDelegate {
     
     func resizeWindowHeight(from offsetValue: CGFloat)
     
-    func scrollEnded(withVelocity velocity: CGFloat)
+    func scrollEnded(_ scrollview: UIScrollView, withVelocity velocity: CGFloat)
     // - TODO: add logic based on velocity
 }
 
@@ -118,7 +118,6 @@ extension PartialScrollableView: UIScrollViewDelegate {
     // see https://stackoverflow.com/a/51768193
     
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        debugPrint("will begin dragging")
         self.lastScrollViewPanGestureY = .zero
     }
     
@@ -138,19 +137,17 @@ extension PartialScrollableView: UIScrollViewDelegate {
     
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint,
                                    targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        self.touchesDelegate.scrollEnded(withVelocity: velocity.y)
-        
-        debugPrint("dragging ended")
-        debugPrint(self.superviewScrollState.rawValue)
-        if self.superviewScrollState == .progressing ||
-            self.superviewScrollState == .bottom {
-            debugPrint("prohibited scrolling mitigation")
+        if [ViewController.PositionState.progressing,
+            ViewController.PositionState.mid,
+            ViewController.PositionState.bottom].contains(self.superviewScrollState) {
+            // in all these cases, the inner scroll view must not scroll
             targetContentOffset.pointee = .zero
             scrollView.isScrollEnabled = false
             scrollView.showsVerticalScrollIndicator = false
         }
         
         scrollView.isScrollEnabled = true
+        self.touchesDelegate.scrollEnded(scrollView, withVelocity: velocity.y)
     }
 }
 
@@ -172,7 +169,7 @@ extension PartialScrollableView {
             return offsetY > 0
         }
         
-        return true // self.superviewScrollState == .progressing
+        return true // self.superviewScrollState == (.progressing || .mid)
     }
     
     private func translateParentWindow(insteadOf scrollview: UIScrollView) {

@@ -18,8 +18,10 @@ class ViewController: UIViewController {
     var startingPanPointY: CGFloat = .zero
     
     let minimumViewHeightDifferencePercentage: CGFloat = 5.0
+    let midViewHeightDifferencePercentage: CGFloat = 55.0
     let maximumViewHeightDifferencePercentage: CGFloat = 85.0
     var minimumViewHeightDifference: CGFloat = .zero
+    var midViewHeightDifference: CGFloat = .zero
     var maximumViewHeightDifference: CGFloat = .zero
 
     override func viewDidLoad() {
@@ -36,6 +38,8 @@ class ViewController: UIViewController {
         
         self.minimumViewHeightDifference = self.view.frame.height *
             self.minimumViewHeightDifferencePercentage / 100.0
+        self.midViewHeightDifference = self.view.frame.height *
+            self.midViewHeightDifferencePercentage / 100.0
         self.maximumViewHeightDifference = self.view.frame.height *
             self.maximumViewHeightDifferencePercentage / 100.0
     }
@@ -80,17 +84,38 @@ class ViewController: UIViewController {
     }
     
     private func updatePositionState() {
+        var positionState = PositionState.progressing
         if self.topConstraint.constant == minimumViewHeightDifference {
-            self.partialView.superviewPositionStateUpdated(to: .top)
+            positionState = .top
+        } else if self.topConstraint.constant == midViewHeightDifference {
+            positionState = .mid
         } else if self.topConstraint.constant == maximumViewHeightDifference {
-            self.partialView.superviewPositionStateUpdated(to: .bottom)
-        } else {
-            self.partialView.superviewPositionStateUpdated(to: .progressing)
+            positionState = .bottom
+        }
+        
+        self.partialView.superviewPositionStateUpdated(to: positionState)
+        debugPrint("new position state is \(positionState.rawValue)")
+    }
+    
+    private func getMidPoints(from array: [CGFloat]) -> [CGFloat] {
+        return array.enumerated().compactMap { (index, el) -> CGFloat? in
+            (array.startIndex..<array.endIndex ~= index + 1 ? array[index + 1] : nil)
+                .flatMap { next in
+                    (el + next) * 0.5
+                }
         }
     }
     
+    private func getIndexOfClosestValue(to value: CGFloat, from array: [CGFloat]) -> Int {
+        return [array.enumerated().map { (i, el) in
+            (i, abs(el - value))
+        }.min { (t1, t2) -> Bool in
+            t1.1 < t2.1
+        }].compactMap { $0?.0 }[0]
+    }
+    
     enum PositionState: String {
-        case top, progressing, bottom
+        case top, progressing, mid, bottom
     }
 }
 
@@ -111,28 +136,51 @@ extension ViewController: PartialScrollableViewDelegate {
         self.checkBoundsAndUpdate(viewHeightWithValue: newConstantValue, positionState: true)
     }
     
-    func scrollEnded(withVelocity velocity: CGFloat) {
-        debugPrint(velocity)
-        // if velocity > ~0.2, go to the next checkpoint in that direction
+    func scrollEnded(_ scrollView: UIScrollView, withVelocity velocity: CGFloat) {
+        var viewHeightUpdateValue: CGFloat = self.maximumViewHeightDifference
+        
+        let treshold: CGFloat = 0.4
+        // checkpoints stored from top to bottom
+        let checkpoints = [self.minimumViewHeightDifference,
+                           self.midViewHeightDifference,
+                           self.maximumViewHeightDifference]
+        let indexOfNearestCheckpoint = self.getIndexOfClosestValue(to: self.topConstraint.constant,
+                                                                   from: checkpoints)
+
+        if scrollView.contentOffset.y == .zero && abs(velocity) > treshold {
+            // check whether the constraint value is below the nearest value or not
+            let isBelowCheckpoint = checkpoints[indexOfNearestCheckpoint] < self.topConstraint.constant
+            if velocity > 0 {
+                // going up
+                if isBelowCheckpoint {
+                    // below: set the constraint to the nearest value
+                    viewHeightUpdateValue = checkpoints[indexOfNearestCheckpoint]
+                } else {
+                    // above: set the constraint to the previous (higher) checkpoint
+                    viewHeightUpdateValue = checkpoints[indexOfNearestCheckpoint - 1]
+                }
+            } else {
+                // going down
+                if isBelowCheckpoint {
+                    // below: set the constraint to the next (lower) checkpoint
+                    viewHeightUpdateValue = checkpoints[indexOfNearestCheckpoint + 1]
+                } else {
+                    // above: set the constrant to the nearest value
+                    viewHeightUpdateValue = checkpoints[indexOfNearestCheckpoint]
+                }
+            }
+        } else {
+            viewHeightUpdateValue = checkpoints[indexOfNearestCheckpoint]
+        }
+        
         
         let animationTimingParameters = UISpringTimingParameters(mass: 2.0,
                                                                  stiffness: 200.0,
                                                                  damping: 30.0,
                                                                  initialVelocity: .init(dx: 0,
-                                                                                        dy: velocity * 4))
+                                                                                        dy: 1.0))
         let animator = UIViewPropertyAnimator(duration: 0.2,
                                               timingParameters: animationTimingParameters)
-        let maxMinMidPointY =
-            (self.minimumViewHeightDifference + self.maximumViewHeightDifference) * 0.5
-        var viewHeightUpdateValue: CGFloat = self.maximumViewHeightDifference
-        
-        if self.minimumViewHeightDifference..<maxMinMidPointY ~= self.topConstraint.constant {
-            // expand to top
-            viewHeightUpdateValue = self.minimumViewHeightDifference
-        } else if maxMinMidPointY..<self.maximumViewHeightDifference ~= self.topConstraint.constant {
-            viewHeightUpdateValue = self.maximumViewHeightDifference
-        }
-                
         animator.addAnimations {
             self.checkBoundsAndUpdate(viewHeightWithValue: viewHeightUpdateValue,
                                       positionState: false)
@@ -145,4 +193,3 @@ extension ViewController: PartialScrollableViewDelegate {
         }
     }
 }
-

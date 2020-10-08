@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		23680B50252CC4B100B62B73 /* SubScroll.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23680B4F252CC4B100B62B73 /* SubScroll.swift */; };
 		237239F0252C571A005A4099 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 237239EF252C571A005A4099 /* AppDelegate.swift */; };
 		237239F2252C571A005A4099 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 237239F1252C571A005A4099 /* SceneDelegate.swift */; };
 		237239F4252C571A005A4099 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 237239F3252C571A005A4099 /* ViewController.swift */; };
@@ -18,7 +17,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		23680B4F252CC4B100B62B73 /* SubScroll.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubScroll.swift; sourceTree = "<group>"; };
 		237239EC252C571A005A4099 /* PartialModal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PartialModal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		237239EF252C571A005A4099 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		237239F1252C571A005A4099 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -64,7 +62,6 @@
 				237239F1252C571A005A4099 /* SceneDelegate.swift */,
 				237239F3252C571A005A4099 /* ViewController.swift */,
 				23723A04252C6443005A4099 /* PartialScrollableView.swift */,
-				23680B4F252CC4B100B62B73 /* SubScroll.swift */,
 				237239F5252C571A005A4099 /* Main.storyboard */,
 				237239F8252C571B005A4099 /* Assets.xcassets */,
 				237239FA252C571B005A4099 /* LaunchScreen.storyboard */,
@@ -147,7 +144,6 @@
 				237239F0252C571A005A4099 /* AppDelegate.swift in Sources */,
 				237239F2252C571A005A4099 /* SceneDelegate.swift in Sources */,
 				23723A05252C6443005A4099 /* PartialScrollableView.swift in Sources */,
-				23680B50252CC4B100B62B73 /* SubScroll.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
